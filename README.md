@@ -12,5 +12,5 @@ go get github.com/daetal-us/parley
 ## Usage
 
 ```bash
-parley path/to/my/image.png
+parlay path/to/my/image.png
 ```
