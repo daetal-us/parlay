@@ -1,34 +1,51 @@
-package main
+package parlay
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"mime"
-	"os"
+	"net/http"
 	"path/filepath"
 	"strings"
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("No filepath specified.")
-		os.Exit(1)
+func FromURL(u string) (string, error) {
+	r, err := http.Get(u)
+	if err != nil {
+		return "", err
 	}
-	path := os.Args[1]
+	defer r.Body.Close()
+	if r.StatusCode != http.StatusOK {
+		return "", errors.New(r.Status)
+	}
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return "", err
+	}
+	m := r.Header.Get("Content-Type")
+	if m == "" {
+		return "", errors.New("Unspecified Content-Type.")
+	}
+	return FromBytes(b, m), nil
+}
+
+func FromPath(path string) (string, error) {
 	if path == "" {
-		fmt.Println("No filepath specified.")
-		os.Exit(1)
+		return "", errors.New("No path specified.")
 	}
-	img, err := ioutil.ReadFile(os.Args[1])
+	b, err := ioutil.ReadFile(path)
 	if err == nil {
-		mimeType := strings.Replace(
-			mime.TypeByExtension(filepath.Ext(os.Args[1])), " ", "", -1,
+		m := strings.Replace(
+			mime.TypeByExtension(filepath.Ext(path)), " ", "", -1,
 		)
-		encodedData := base64.StdEncoding.EncodeToString(img)
-		fmt.Println(fmt.Sprintf(`data:%s;base64,%s`, mimeType, encodedData))
-	} else {
-		fmt.Println(err)
-		os.Exit(1)
+		return FromBytes(b, m), nil
 	}
+	return "", err
+}
+
+func FromBytes(data []byte, mimeType string) string {
+	encoded := base64.StdEncoding.EncodeToString(data)
+	return fmt.Sprintf(`data:%s;base64,%s`, mimeType, encoded)
 }
