@@ -1,6 +1,6 @@
 # Parlay
 
-A [golang][go] command line utility and library to generates a data URL, as specified by [RFC 2397](rfc2397), from a binary string, file path or remote URL.
+A [golang][go] command line utility and library to generate a data URL, as specified by [RFC 2397](rfc2397), from a binary string, file path or remote URL.
 
 ## Installation
 
